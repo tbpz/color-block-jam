@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Block Jam</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .container {
+      text-align: center;
+      background: rgba(255,255,255,0.95);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      max-width: 500px;
+    }
+    
+    .game-title {
+      font-size: 2.5rem;
+      color: #333;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    
+    .loading {
+      margin: 30px 0;
+    }
+    
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .status {
+      font-size: 1.1rem;
+      color: #666;
+      margin: 10px 0;
+    }
+    
+    .error {
+      color: #e74c3c;
+      background: #fdf2f2;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 4px solid #e74c3c;
+    }
+    
+    .success {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 10px;
+      transition: transform 0.2s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+    }
+    
+    .manual-load {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="game-title">🎮 Color Block Jam</h1>
+    
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <div class="status" id="status">Starting game engine...</div>
+    </div>
+    
+    <div id="error" class="error" style="display: none;">
+      <h3>⚠️ Loading Problem</h3>
+      <p>The game couldn't load automatically. This is likely a server configuration issue.</p>
+      <div class="manual-load">
+        <h4>🚀 Manual Load Options:</h4>
+        <button onclick="tryDirectLoad()">Try Direct Load</button>
+        <button onclick="downloadAndPlay()">Download & Play</button>
+        <button onclick="location.reload()">Refresh Page</button>
+      </div>
+    </div>
+    
+    <div id="success" class="success" style="display: none;">
+      <h3>✅ Game Loaded Successfully!</h3>
+      <p>Enjoy playing Color Block Jam!</p>
+    </div>
+  </div>
+
+  <script>
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    function updateStatus(message) {
+      document.getElementById('status').textContent = message;
+      console.log('Status:', message);
+    }
+    
+    function showError() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    }
+    
+    function showSuccess() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+    }
+    
+    function tryDirectLoad() {
+      updateStatus('Attempting direct load...');
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      
+      // Try to load main.dart.js with absolute path
+      const script = document.createElement('script');
+      script.src = window.location.origin + '/main.dart.js';
+      script.type = 'text/javascript';
+      
+      script.onload = function() {
+        updateStatus('Game loaded successfully!');
+        showSuccess();
+      };
+      
+      script.onerror = function() {
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(tryAlternativeLoad, 2000);
+        } else {
+          updateStatus('All loading attempts failed');
+          showError();
+        }
+      };
+      
+      document.head.appendChild(script);
+    }
+    
+    function tryAlternativeLoad() {
+      updateStatus('Trying alternative loading method...');
+      
+      // Try different path variations
+      const paths = ['./main.dart.js', 'main.dart.js', '/main.dart.js'];
+      const currentPath = paths[attempts % paths.length];
+      
+      const script = document.createElement('script');
+      script.src = currentPath;
+      
+      script.onload = function() {
+        updateStatus('Game loaded via alternative method!');
+        showSuccess();
+      };
+      
+      script.onerror = function() {
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(tryAlternativeLoad, 1000);
+        } else {
+          showError();
+        }
+      };
+      
+      document.head.appendChild(script);
+    }
+    
+    function downloadAndPlay() {
+      updateStatus('Opening download options...');
+      alert('Due to server configuration issues, you can:\n\n1. Download the game files directly\n2. Try a different hosting service\n3. Run locally with "flutter run -d chrome"\n\nWould you like to try GitHub Pages instead?');
+    }
+    
+    // Start loading immediately
+    updateStatus('Initializing Color Block Jam...');
+    setTimeout(tryDirectLoad, 1000);
+    
+    // Fallback timeout
+    setTimeout(function() {
+      if (document.getElementById('loading').style.display !== 'none') {
+        showError();
+      }
+    }, 10000);
+  </script>
+</body>
+</html> 

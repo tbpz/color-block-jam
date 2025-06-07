@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Block Jam - Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .pass { background-color: #d4edda; }
+        .fail { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Color Block Jam - Debug Page</h1>
+    
+    <div id="tests"></div>
+    
+    <h2>Console Output:</h2>
+    <div id="console"></div>
+    
+    <script>
+        const testsDiv = document.getElementById('tests');
+        const consoleDiv = document.getElementById('console');
+        
+        function test(name, result) {
+            const div = document.createElement('div');
+            div.className = 'test ' + (result ? 'pass' : 'fail');
+            div.innerHTML = `<strong>${name}:</strong> ${result ? 'PASS' : 'FAIL'}`;
+            testsDiv.appendChild(div);
+        }
+        
+        // Override console.log to capture output
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const div = document.createElement('div');
+            div.textContent = args.join(' ');
+            consoleDiv.appendChild(div);
+        };
+        
+        // Override console.error to capture errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            const div = document.createElement('div');
+            div.style.color = 'red';
+            div.textContent = 'ERROR: ' + args.join(' ');
+            consoleDiv.appendChild(div);
+        };
+        
+        // Capture uncaught errors
+        window.onerror = function(msg, url, line, col, error) {
+            console.error(`Uncaught error: ${msg} at ${url}:${line}:${col}`, error);
+        };
+        
+        // Run tests
+        test('JavaScript working', true);
+        test('fetch available', typeof fetch !== 'undefined');
+        test('WebAssembly available', typeof WebAssembly !== 'undefined');
+        test('main.dart.js exists', fetch('main.dart.js').then(r => r.ok).catch(() => false));
+        test('flutter_bootstrap.js exists', fetch('flutter_bootstrap.js').then(r => r.ok).catch(() => false));
+        
+        // Check if Flutter files exist
+        const files = [
+            'main.dart.js',
+            'flutter_bootstrap.js',
+            'flutter.js',
+            'flutter_service_worker.js',
+            'manifest.json'
+        ];
+        
+        files.forEach(file => {
+            fetch(file)
+                .then(response => {
+                    test(`${file} accessible`, response.ok);
+                    if (!response.ok) {
+                        console.error(`Failed to load ${file}: ${response.status} ${response.statusText}`);
+                    }
+                })
+                .catch(error => {
+                    test(`${file} accessible`, false);
+                    console.error(`Error loading ${file}:`, error);
+                });
+        });
+        
+        console.log('Debug page loaded successfully');
+        console.log('Base URL:', document.baseURI);
+        console.log('Current location:', window.location.href);
+    </script>
+</body>
+</html> 
